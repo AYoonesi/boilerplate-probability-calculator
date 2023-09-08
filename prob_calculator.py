@@ -2,18 +2,19 @@ import copy
 import random
 
 class Hat:
-    def __init__(self, **kwargs):
+    def __init__(self, **balls):
         self.contents = []
-        for color, count in kwargs.items():
+        for color, count in balls.items():
             self.contents.extend([color] * count)
 
-    def draw(self, num_balls):
-        drawn_balls = []
-        if num_balls >= len(self.contents):
+    def draw(self, num_balls_to_draw):
+        if num_balls_to_draw >= len(self.contents):
             return self.contents
-        for _ in range(num_balls):
-            ball_index = random.randint(0, len(self.contents) - 1)
-            drawn_balls.append(self.contents.pop(ball_index))
+        
+        drawn_balls = random.sample(self.contents, num_balls_to_draw)
+        for ball in drawn_balls:
+            self.contents.remove(ball)
+        
         return drawn_balls
 
 def experiment(hat, expected_balls, num_balls_drawn, num_experiments):
@@ -22,20 +23,9 @@ def experiment(hat, expected_balls, num_balls_drawn, num_experiments):
     for _ in range(num_experiments):
         hat_copy = copy.deepcopy(hat)
         drawn_balls = hat_copy.draw(num_balls_drawn)
-        drawn_balls_dict = {}
-        
-        for ball in drawn_balls:
-            if ball in drawn_balls_dict:
-                drawn_balls_dict[ball] += 1
-            else:
-                drawn_balls_dict[ball] = 1
+        drawn_balls_dict = {color: drawn_balls.count(color) for color in drawn_balls}
 
-        successful_experiment = True
-        for color, count in expected_balls.items():
-            if color not in drawn_balls_dict or drawn_balls_dict[color] < count:
-                successful_experiment = False
-                break
-        
+        successful_experiment = all(drawn_balls_dict.get(color, 0) >= count for color, count in expected_balls.items())
         if successful_experiment:
             count_successful_experiments += 1
 
